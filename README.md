@@ -63,6 +63,13 @@ Enable-PSRemoting -Force
 sudo bash format_usb.sh
 ```
 
+### **Windows: DiskPart Error - "Unable to Process the Parameters"**
+📌 This is a known issue. The script still formats successfully, but DiskPart may print an error. See the **To-Do** section below.
+
+## ✅ To-Do
+- [ ] **Fix DiskPart error message:** Investigate why "DiskPart was unable to process the parameters" appears despite successful formatting.
+- [ ] **Add progress indicators:** Show estimated time remaining for formatting.
+- [ ] **Improve Linux/macOS partition handling:** Better detection of existing partitions before formatting.
+
 ## 📄 License
 MIT License - Free to use, modify, and distribute.
-

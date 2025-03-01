@@ -2,7 +2,7 @@
 # format_usb.sh - A cross-platform script to format USB drives interactively
 #
 # Author: Your Name
-# Version: 1.0
+# Version: 1.8
 # License: MIT
 # Compatible with: Windows (via Git Bash/WSL), macOS, Linux
 #
@@ -79,15 +79,27 @@ format_drive() {
         diskutil eraseDisk "$FILESYSTEM" "USB_DRIVE" "/dev/$DRIVE"
 
     elif [[ "$OS" == "windows" ]]; then
+        # Check if disk is already clean (has no partitions)
+        CLEAN_REQUIRED=$(powershell -Command "if ((Get-Partition -DiskNumber $DRIVE) -eq \$null) { Write-Output 'yes' } else { Write-Output 'no' }")
+        
         echo "select disk $DRIVE" > diskpart_commands.txt
-        echo "clean" >> diskpart_commands.txt
+        if [[ "$CLEAN_REQUIRED" == "yes" ]]; then
+            echo "clean" >> diskpart_commands.txt
+        fi
         echo "create partition primary" >> diskpart_commands.txt
-        echo "format fs=$FILESYSTEM quick" >> diskpart_commands.txt
+        echo "select partition 1" >> diskpart_commands.txt
         echo "assign" >> diskpart_commands.txt
         echo "exit" >> diskpart_commands.txt
 
-        diskpart /s diskpart_commands.txt
         rm diskpart_commands.txt
+
+        if [[ "$FILESYSTEM" == "exfat" ]]; then
+            powershell -Command "Format-Volume -DriveLetter Z -FileSystem exFAT -NewFileSystemLabel 'USB_DRIVE' -Confirm:\$false"
+        elif [[ "$FILESYSTEM" == "ntfs" ]]; then
+            powershell -Command "Format-Volume -DriveLetter Z -FileSystem NTFS -NewFileSystemLabel 'USB_DRIVE' -Confirm:\$false"
+        else
+            powershell -Command "Format-Volume -DriveLetter Z -FileSystem FAT32 -NewFileSystemLabel 'USB_DRIVE' -Confirm:\$false"
+        fi
     fi
 
     echo "✅ Formatting complete!"
